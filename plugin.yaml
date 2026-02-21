@@ -1,0 +1,7 @@
+name: nox-plugin-artifact-integrity
+version: 0.1.0
+track: supply-chain
+description: Verify checksums, signatures, and lockfile integrity for release artifacts
+tools:
+  - name: scan
+    description: Scan for missing checksums, unsigned artifacts, and checksum mismatches

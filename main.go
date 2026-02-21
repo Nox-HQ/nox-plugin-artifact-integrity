@@ -57,11 +57,11 @@ var checksumExtensions = map[string]bool{
 
 // checksumFileNames lists common names for checksum manifest files.
 var checksumFileNames = map[string]bool{
-	"SHA256SUMS":     true,
-	"SHA512SUMS":     true,
-	"CHECKSUMS":      true,
-	"checksums.txt":  true,
-	"CHECKSUMS.txt":  true,
+	"SHA256SUMS":    true,
+	"SHA512SUMS":    true,
+	"CHECKSUMS":     true,
+	"checksums.txt": true,
+	"CHECKSUMS.txt": true,
 }
 
 // lockfileNames lists lockfile names that contain checksums to verify.
@@ -178,7 +178,7 @@ func isReleaseArtifact(name string) bool {
 
 // hasCompanionFile checks if a file with any of the given extensions exists
 // alongside the artifact.
-func hasCompanionFile(name, dir string, fileSet map[string]bool, extensions map[string]bool) bool {
+func hasCompanionFile(name, dir string, fileSet, extensions map[string]bool) bool {
 	for ext := range extensions {
 		companion := filepath.Join(dir, name+ext)
 		if fileSet[companion] {
@@ -238,7 +238,7 @@ func checkChecksumMismatches(resp *sdk.ResponseBuilder, checksumFilePath, dir st
 	if err != nil {
 		return
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	scanner := bufio.NewScanner(f)
 	lineNum := 0
@@ -349,7 +349,7 @@ func checkGoSumIntegrity(resp *sdk.ResponseBuilder, filePath string) {
 	if err != nil {
 		return
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	scanner := bufio.NewScanner(f)
 	lineNum := 0
@@ -390,12 +390,17 @@ func checkGoSumIntegrity(resp *sdk.ResponseBuilder, filePath string) {
 }
 
 func main() {
+	os.Exit(run())
+}
+
+func run() int {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
 
 	srv := buildServer()
 	if err := srv.Serve(ctx); err != nil {
 		fmt.Fprintf(os.Stderr, "nox-plugin-artifact-integrity: %v\n", err)
-		os.Exit(1)
+		return 1
 	}
+	return 0
 }
